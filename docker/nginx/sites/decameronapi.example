@@ -1,0 +1,49 @@
+#server {
+#    listen 80;
+#    server_name api-decameron.tk;
+#    return 301 https://api-decameron.tk$request_uri;
+#}
+
+server {
+
+    listen 80;
+    listen [::]:80;
+
+    #listen 443;
+    #listen [::]:443;
+
+    server_name api-decameron.tk;
+    root /var/www/html/BackLaravel/public;
+    index index.php index.html index.htm;
+
+    #ssl on;
+    #ssl_certificate /var/certs/api-decameron.tk/cert.pem;
+    #ssl_certificate_key /var/certs/api-decameron.tk/privkey.pem;
+
+    location / {
+         try_files $uri $uri/ /index.php$is_args$args;
+    }
+
+    location ~ \.php$ {
+        try_files $uri /index.php =404;
+        fastcgi_pass php-upstream;
+        fastcgi_index index.php;
+        fastcgi_buffers 16 16k;
+        fastcgi_buffer_size 32k;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        #fixes timeouts
+        include fastcgi_params;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt/;
+        log_not_found off;
+    }
+
+    error_log /var/log/nginx/laravel_error.log;
+    access_log /var/log/nginx/laravel_access.log;
+}
